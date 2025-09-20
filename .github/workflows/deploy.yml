@@ -71,11 +71,9 @@ jobs:
             fi
             
             echo '🔐 Updating production environment file...'
-            cat > .env.production << EOF
-            DB_USER=${{ secrets.DB_USER || 'odoo' }}
-            DB_PASSWORD=${{ secrets.DB_PASSWORD || 'myodoo' }}
-            MASTER_PASSWORD=${{ secrets.MASTER_PASSWORD || 'w6kh-tdxq-ar2z' }}
-            EOF
+            echo 'DB_USER=${{ env.DB_USER }}' > .env.production
+            echo 'DB_PASSWORD=${{ env.DB_PASSWORD }}' >> .env.production
+            echo 'MASTER_PASSWORD=${{ env.MASTER_PASSWORD }}' >> .env.production
             
             echo '🐳 Stopping old containers...'
             docker compose -f docker-compose.prod.yml down || true
