@@ -1,0 +1,48 @@
+services:
+  db:
+    image: postgres:15
+    container_name: odoo-prod-db
+    environment:
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-myodoo}
+      - POSTGRES_USER=${DB_USER:-odoo}
+      - POSTGRES_DB=postgres
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - odoo-prod-db-data:/var/lib/postgresql/data/pgdata
+    restart: always
+    networks:
+      - odoo-prod-network
+
+  odoo:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    image: odoo18-custom:latest
+    container_name: odoo-prod
+    depends_on:
+      - db
+    ports:
+      - "8069:8069"
+    environment:
+      - HOST=db
+      - USER=${DB_USER:-odoo}
+      - PASSWORD=${DB_PASSWORD:-myodoo}
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=${DB_USER:-odoo}
+      - DB_PASSWORD=${DB_PASSWORD:-myodoo}
+    volumes:
+      - odoo-prod-web-data:/var/lib/odoo
+      - odoo-prod-logs:/var/log/odoo
+    restart: always
+    networks:
+      - odoo-prod-network
+
+volumes:
+  odoo-prod-db-data:
+  odoo-prod-web-data:
+  odoo-prod-logs:
+
+networks:
+  odoo-prod-network:
+    driver: bridge

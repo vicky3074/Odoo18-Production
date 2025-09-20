@@ -1,0 +1,29 @@
+# Production Dockerfile for Odoo 18
+FROM odoo:18
+
+# Switch to root for package installation
+USER root
+
+# Copy custom configuration
+COPY config/odoo.conf /etc/odoo/
+COPY custom-addons /mnt/custom-addons
+
+# Copy Odoo source code (if modified)
+# COPY odoo-source /usr/lib/python3/dist-packages/odoo
+
+# Set proper permissions
+RUN chown -R odoo:odoo /mnt/custom-addons
+RUN chown -R odoo:odoo /etc/odoo
+
+# Create necessary directories
+RUN mkdir -p /var/log/odoo && chown odoo:odoo /var/log/odoo
+RUN mkdir -p /var/lib/odoo && chown odoo:odoo /var/lib/odoo
+
+# Switch back to odoo user
+USER odoo
+
+# Expose port
+EXPOSE 8069
+
+# Start Odoo
+CMD ["odoo", "-c", "/etc/odoo/odoo.conf"]

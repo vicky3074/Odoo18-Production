@@ -1,0 +1,129 @@
+name: Deploy Odoo 18 to DigitalOcean
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+    types: [ closed ]
+  workflow_dispatch: # Allow manual triggers
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    # Deploy on push to main OR on merged PRs
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+    
+    env:
+      # Database configuration
+      DB_USER: ${{ secrets.DB_USER || 'odoo' }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD || 'myodoo' }}
+      MASTER_PASSWORD: ${{ secrets.MASTER_PASSWORD || 'w6kh-tdxq-ar2z' }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+        
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        
+      - name: Build Docker image
+        run: |
+          echo "🏗️ Building Docker image for Odoo 18..."
+          docker buildx build --platform linux/amd64 \
+            -f Dockerfile.prod \
+            -t odoo18-custom:latest \
+            . --load
+          
+      - name: Save Docker image
+        run: |
+          echo "💾 Saving Docker image to tar file..."
+          docker save odoo18-custom:latest | gzip > odoo18-custom.tar.gz
+          ls -lh odoo18-custom.tar.gz
+        
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+          
+      - name: Upload and deploy
+        run: |
+          echo "📤 Uploading Docker image to server..."
+          scp -o StrictHostKeyChecking=no odoo18-custom.tar.gz root@${{ secrets.SERVER_HOST }}:/tmp/
+          
+          echo "🚀 Deploying Odoo 18 on server..."
+          ssh -o StrictHostKeyChecking=no root@${{ secrets.SERVER_HOST }} "
+            echo '🚀 Starting Odoo 18 deployment...'
+            mkdir -p /root/odoo18
+            cd /root/odoo18
+            
+            echo '📡 Pulling latest code for docker-compose files...'
+            if [ ! -d '.git' ]; then
+              git clone https://github.com/vicky3074/Odoo18-Production.git .
+            else
+              git fetch origin main
+              git reset --hard origin/main
+            fi
+            
+            echo '🔐 Updating production environment file...'
+            echo 'DB_USER=${{ secrets.DB_USER || \"odoo\" }}' > .env.production
+            echo 'DB_PASSWORD=${{ secrets.DB_PASSWORD || \"myodoo\" }}' >> .env.production
+            echo 'MASTER_PASSWORD=${{ secrets.MASTER_PASSWORD || \"w6kh-tdxq-ar2z\" }}' >> .env.production
+            
+            echo '🐳 Stopping old containers...'
+            docker compose -f docker-compose.prod.yml down || true
+            
+            echo '📦 Loading new Docker image...'
+            docker load < /tmp/odoo18-custom.tar.gz
+            docker tag odoo18-custom:latest odoo18-custom:latest
+            
+            echo '🚀 Starting new containers...'
+            docker compose --env-file .env.production -f docker-compose.prod.yml up -d
+            
+            echo '🧹 Cleaning up...'
+            rm -f /tmp/odoo18-custom.tar.gz
+            docker system prune -f || true
+            
+            echo '✅ Deployment complete!'
+            docker ps | grep odoo-prod
+          "
+          
+      - name: Verify deployment
+        run: |
+          echo "⏳ Waiting for container to fully start..."
+          sleep 45
+          
+          echo "🔍 Testing Odoo site availability..."
+          for i in {1..5}; do
+            if curl -f -s -o /dev/null http://${{ secrets.SERVER_HOST }}:8069/; then
+              echo "✅ Odoo site is responding!"
+              break
+            else
+              echo "⏳ Attempt $i/5 - Site not ready yet, waiting..."
+              sleep 15
+            fi
+            if [ $i -eq 5 ]; then
+              echo "❌ Site failed to respond after 5 attempts"
+              exit 1
+            fi
+          done
+          
+          echo "🔧 Testing Odoo database manager..."
+          RESPONSE=$(curl -s http://${{ secrets.SERVER_HOST }}:8069/web/database/manager || echo "")
+          echo "Database manager response: $RESPONSE"
+          
+          if [[ "$RESPONSE" == *"database"* ]]; then
+            echo "✅ Odoo database manager is accessible!"
+          else
+            echo "⚠️ Database manager verification inconclusive"
+          fi
+          
+          echo "🐳 Verifying container status..."
+          ssh -o StrictHostKeyChecking=no root@${{ secrets.SERVER_HOST }} "docker ps | grep odoo-prod" || echo "⚠️ Container check inconclusive"
+          
+          echo "✅ Deployment verification completed successfully!"

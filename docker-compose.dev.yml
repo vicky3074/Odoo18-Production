@@ -1,0 +1,50 @@
+services:
+  db:
+    image: postgres:15
+    container_name: odoo-dev-db
+    environment:
+      - POSTGRES_PASSWORD=myodoo
+      - POSTGRES_USER=odoo
+      - POSTGRES_DB=postgres
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - odoo-dev-db-data:/var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"  # Expose for development access
+    restart: unless-stopped
+    networks:
+      - odoo-dev-network
+
+  odoo:
+    image: odoo:18
+    container_name: odoo-dev
+    depends_on:
+      - db
+    ports:
+      - "8069:8069"
+    environment:
+      - HOST=db
+      - USER=odoo
+      - PASSWORD=myodoo
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=odoo
+      - DB_PASSWORD=myodoo
+    volumes:
+      # Mount custom addons only (don't override core Odoo)
+      - ./custom-addons:/mnt/custom-addons:rw
+      - ./config/odoo.dev.conf:/etc/odoo/odoo.conf:ro
+      - ./data:/var/lib/odoo:rw
+      # Mount logs for debugging
+      - ./logs:/var/log/odoo:rw
+    command: ["odoo", "-c", "/etc/odoo/odoo.conf", "--dev=all", "--log-level=debug"]
+    restart: unless-stopped
+    networks:
+      - odoo-dev-network
+
+volumes:
+  odoo-dev-db-data:
+
+networks:
+  odoo-dev-network:
+    driver: bridge
