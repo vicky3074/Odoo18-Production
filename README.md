@@ -1,6 +1,8 @@
 # Odoo 18 Development & Production Environment
 
-🚀 **Status:** DEPLOYMENT SUCCESSFUL! Odoo 18 running at http://174.138.93.20:8069
+🚀 **Status:** FULLY OPERATIONAL! Odoo 18 accessible at http://174.138.93.20:8069
+
+⚠️ **Note**: SSH access temporarily blocked by UFW firewall. Use DigitalOcean console for server access.
 
 ## 🚀 Quick Start
 
