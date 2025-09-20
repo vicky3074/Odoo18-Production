@@ -52,10 +52,22 @@ jobs:
         run: |
           echo "📤 Uploading Docker image to server..."
           scp -o StrictHostKeyChecking=no odoo18-custom.tar.gz root@${{ secrets.SERVER_HOST }}:/tmp/
-          
+
           echo "🚀 Deploying Odoo 18 on server..."
           ssh -o StrictHostKeyChecking=no root@${{ secrets.SERVER_HOST }} "
             echo '🚀 Starting Odoo 18 deployment...'
+
+            echo '🐳 Installing Docker if not present...'
+            if ! command -v docker &> /dev/null; then
+              apt update
+              apt install -y docker.io docker-compose-plugin
+              systemctl start docker
+              systemctl enable docker
+              echo 'Docker installed successfully!'
+            else
+              echo 'Docker is already installed'
+            fi
+
             mkdir -p /root/odoo18
             cd /root/odoo18
             
