@@ -1,5 +1,7 @@
 # Odoo 18 Development & Production Environment
 
+🚀 **Status:** Docker installed on server, ready for deployment!
+
 ## 🚀 Quick Start
 
 ### Development Environment
