@@ -4,15 +4,17 @@
 
 **Complete Odoo 18 development and production setup with editable source code, custom addon development, and automated deployment to DigitalOcean.**
 
-### 🎯 Current Status: **DEVELOPMENT READY** ✅
+### 🎯 Current Status: **FULLY OPERATIONAL** ✅
 
 - **Odoo Version**: 18 (Latest Stable Community Edition)
 - **Database**: PostgreSQL 15
 - **Development Access**: http://localhost:8069
-- **Production Server**: 174.138.93.20
+- **Production Server**: http://174.138.93.20:8069
+- **Production Database**: `production`
+- **Admin Login**: vicky@clyvanta.com
 - **Master Password**: `w6kh-tdxq-ar2z`
 - **Location**: `/Users/vicky/Desktop/Vicky/Ventures/Odoo/Odoo`
-- **GitHub Repository**: Ready for setup
+- **GitHub Repository**: https://github.com/vicky3074/Odoo18-Production
 - **Deployment**: Automated via GitHub Actions
 
 ---
@@ -200,18 +202,26 @@ log_level = info
 
 ## 📊 Database Information
 
-### Primary Database
-- **Name**: Clyvanta
+### Production Database
+- **Name**: `production`
 - **Admin User**: vicky@clyvanta.com
-- **Password**: w6kh-tdxq-ar2z
+- **Admin Password**: [Set during database creation]
 - **Phone**: 6479365467
 - **Country**: Canada
-- **Demo Data**: Not installed
+- **Language**: English (US)
+- **Demo Data**: Enabled (includes sample data for testing)
+- **Status**: ✅ Active and operational
 
 ### Database Management
 - **Master Password**: `w6kh-tdxq-ar2z` (for database operations)
 - **Database Operations**: Create, backup, restore, duplicate databases
-- **Access**: Database Manager at http://localhost:8069/web/database/manager
+- **Production Access**: http://174.138.93.20:8069/web/database/manager
+- **Development Access**: http://localhost:8069/web/database/manager
+
+### Access URLs
+- **Production Odoo**: http://174.138.93.20:8069
+- **Development Odoo**: http://localhost:8069
+- **Database Manager**: http://174.138.93.20:8069/web/database/manager
 
 ---
 
@@ -239,7 +249,13 @@ The system includes standard Odoo Community apps:
 
 ## 🌐 Access & Networking
 
-### Local Access
+### Production Access
+- **Primary URL**: http://174.138.93.20:8069
+- **Database Manager**: http://174.138.93.20:8069/web/database/manager
+- **Port**: 8069 (externally accessible)
+- **Firewall**: UFW configured for SSH (22) and HTTP (8069)
+
+### Development Access
 - **Primary URL**: http://localhost:8069
 - **Network Access**: http://[YOUR_LOCAL_IP]:8069
 - **Port Mapping**: `0.0.0.0:8069->8069/tcp` (all interfaces)
@@ -248,6 +264,7 @@ The system includes standard Odoo Community apps:
 - **Database Port**: 5432 (internal Docker network only)
 - **Master Password**: Encrypted and stored securely
 - **User Authentication**: Standard Odoo session management
+- **Firewall**: UFW enabled with SSH and HTTP access
 
 ---
 
