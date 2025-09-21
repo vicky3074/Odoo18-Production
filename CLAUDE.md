@@ -9,7 +9,7 @@
 - **Odoo Version**: 18 (Latest Stable Community Edition)
 - **Database**: PostgreSQL 15
 - **Development Access**: http://localhost:8069
-- **Production Server**: http://64.225.27.36:8069
+- **Production Server**: http://159.203.127.38:8069
 - **Production Database**: `production`
 - **Admin Login**: vicky@clyvanta.com
 - **Master Password**: `w6kh-tdxq-ar2z`

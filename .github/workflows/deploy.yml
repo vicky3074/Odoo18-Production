@@ -96,10 +96,7 @@ jobs:
             echo '🚀 Starting new containers...'
             docker-compose --env-file .env.production -f docker-compose.prod.yml up -d
 
-            echo '🔥 Configuring firewall for Odoo access...'
-            ufw --force allow ssh >/dev/null 2>&1 || true
-            ufw --force allow 8069/tcp >/dev/null 2>&1 || true
-            ufw --force enable >/dev/null 2>&1 || true
+            echo '🔥 Skipping firewall configuration to preserve SSH access...'
             
             echo '🧹 Cleaning up...'
             rm -f /tmp/odoo18-custom.tar.gz
