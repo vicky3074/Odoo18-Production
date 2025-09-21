@@ -49,4 +49,4 @@ Production deployment is automated via GitHub Actions when you push to the `main
 
 ## 📚 More Information
 
-See `CLAUDE.md` for comprehensive documentation and setup details.
+See `CLAUDE.md` for comprehensive documentation and setup details.# Fresh deployment trigger
